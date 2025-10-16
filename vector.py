@@ -9,7 +9,7 @@ def load_reviews(aimode: str):
     
     embeddings = None
     db_location = ""
-    
+
     df = pd.read_csv("data/data.csv")
 
     if aimode != "1":
@@ -51,3 +51,22 @@ def load_reviews(aimode: str):
         search_kwargs={"k":5} # numero de documentos a recuperar
     )
     return retriever
+
+
+# Herramienta para obtener los datos de chroma
+# Usando librerias clasicas de langchain
+from langchain.tools import Tool
+
+def get_rag(query: str) -> str:
+    # Esta función recupera información relevante de la base de datos vectorial basada en la consulta del usuario.
+    # Utiliza el retriever para buscar y devolver los documentos más relevantes.
+    retriever = load_reviews(aimode="2") # aqui puedes cambiar a "1" si usas openai embeddings
+    results = retriever.get_relevant_documents(query)
+    combined_text = "\n\n".join([doc.page_content for doc in results])
+    return combined_text
+
+get_rag = Tool(
+    name="retrieval_tool",
+    func=get_rag,
+    description="""Usa esta herramienta para responder preguntas sobre restaurantes buenazos en Lima, Peru.
+    La entrada es una pregunta y la salida es un texto con la información relevante extraída de las reviews de los influencers gastronómicos más reconocidos de Lima.""")
